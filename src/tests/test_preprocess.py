@@ -13,6 +13,16 @@ class TestPreprocessor(PySparkTestCase):
 
         df_recipe_info = self.spark.read.csv('tests/fixtures/preprocess/recipe_info.csv', header=True)
 
+        preprocessor_all = Preprocessor(df_recipe_info=df_recipe_info, columns='all')
+
+        df_preprocessed_all = preprocessor_all.preprocess()
+        self.assertEqual(df_preprocessed_all.count(), df_recipe_info.count()-1)
+
+        preprocessor_country = Preprocessor(df_recipe_info=df_recipe_info, columns=['country'])
+        df_preprocessed_country = preprocessor_country.preprocess()
+        self.assertEqual(df_preprocessed_country.count(), df_recipe_info.count() - 1)
+        self.assertEqual(len(df_preprocessed_country.columns), 1+4)
+
     def test_convert_column_argument(self):
 
         df_long = self.spark.read.csv('tests/fixtures/preprocess/long.csv', header=True)

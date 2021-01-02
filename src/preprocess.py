@@ -11,10 +11,12 @@ class Preprocessor(object):
 
     def __init__(self, df_recipe_info, columns):
         """
-        Performs the following assumption checks during initialization:
-            - checks if df_recipe_info is a spark data frame
-            - checks if "recipe_id" contains nulls
-            - checks if "recipe_id" contains duplicate
+        Performs the following assumption checks/manipulations during initialization:
+            - checks if "df_recipe_info" is a spark data frame
+            - checks "columns" is a list or "all"
+            - convert "columns" to list of containing all columns from "df_recipe_id"
+            - checks nulls in "recipe_id"
+            - removes duplicates from "recipe_id"
             - checks if attribute columns contain nulls
 
         :param df_recipe_info: spark data frame
