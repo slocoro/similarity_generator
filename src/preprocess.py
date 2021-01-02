@@ -177,7 +177,8 @@ class Preprocessor(object):
         """
         Replaces whitespaces with underscores in every column except "recipe_id"
 
-        :return:
+        :param df_rectified_country_labels: spark data frame
+        :return: spark data frame
         """
 
         columns_to_process = [col for col in df_rectified_country_labels.columns if col != 'recipe_id']
@@ -196,6 +197,7 @@ class Preprocessor(object):
         """
         Converts all attriute columns to lower case.
 
+        :param df_no_whitspaces: spark data frame
         :return: spark data frame
         """
 
@@ -207,6 +209,24 @@ class Preprocessor(object):
             df_lower_case = df_lower_case.withColumn(col, f.lower(f.col(col)))
 
         return df_lower_case
+
+    @staticmethod
+    def convert_nas(df_lower_case):
+        """
+        Converts "#n/a" to column_name+not_applicable.
+
+        :param df_lower_case: spark data frame
+        :return: spark data frame
+        """
+
+        columns_to_process = [col for col in df_lower_case.columns if col != 'recipe_id']
+
+        df_converted_nas = df_lower_case
+
+        for col in columns_to_process:
+            df_converted_nas = df_converted_nas.withColumn(col, f.regexp_replace(col, '#n/a', col+'_not_applicable'))
+
+        return df_converted_nas
 
     def convert_prep_time(self, df_converted_nas):
         """
@@ -227,24 +247,6 @@ class Preprocessor(object):
             return df_converted_prep_time
         else:
             return df_converted_nas
-
-    @staticmethod
-    def convert_nas(df_lower_case):
-        """
-        Converts "#n/a" to column_name+not_applicable.
-
-        :param df_lower_case: spark data frame
-        :return: spark data frame
-        """
-
-        columns_to_process = [col for col in df_lower_case.columns if col != 'recipe_id']
-
-        df_converted_nas = df_lower_case
-
-        for col in columns_to_process:
-            df_converted_nas = df_converted_nas.withColumn(col, f.regexp_replace(col, '#n/a', col+'_not_applicable'))
-
-        return df_converted_nas
 
     def convert_to_one_hot(self, df_lower_case):
         """
