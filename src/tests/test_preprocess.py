@@ -27,6 +27,16 @@ class TestPreprocessor(PySparkTestCase):
         with self.assertRaises(AssertionError):
             Preprocessor(df_recipe_info=df_nulls, columns='')
 
+    def test_check_no_duplicate_recipes(self):
+
+        df_duplicate_recipes = self.spark.read.csv('tests/fixtures/preprocess/duplicate_recipes.csv', header=True)
+        df_no_duplicate_recipes = self.spark.read.csv('tests/fixtures/preprocess/no_duplicate_recipes.csv', header=True)
+
+        with self.assertRaises(AssertionError):
+            Preprocessor(df_recipe_info=df_duplicate_recipes, columns='')
+
+        Preprocessor(df_recipe_info=df_no_duplicate_recipes, columns='')
+
     def test_replace_whitespaces(self):
 
         df_whitespaces = self.spark.read.csv('tests/fixtures/preprocess/replace_whitespaces.csv', header=True)
