@@ -24,7 +24,7 @@ class Preprocessor(object):
         self.columns = columns
 
         self.check_if_spark_data_frame()
-        self.check_if_recipe_id_contains_nulls()
+        self.check_nulls_in_recipe_id()
         self.check_no_duplicate_recipes()
         self.check_nulls_in_attribute_columns()
 
@@ -49,7 +49,7 @@ class Preprocessor(object):
 
         assert isinstance(self.df_recipe_info, DataFrame), '"df_recipe_info" is not a spark data frame.'
 
-    def check_if_recipe_id_contains_nulls(self):
+    def check_nulls_in_recipe_id(self):
         """
         Checks if column "recipe_id" contains nulls.
 
