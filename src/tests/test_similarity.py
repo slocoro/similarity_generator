@@ -22,7 +22,7 @@ class TestSimiarity(PySparkTestCase):
         with self.assertRaises(AssertionError):
             Similarity(df_features=pd_df_simple_table)
 
-    def test_check_nulls_in_attribute_columns(self):
+    def test_check_nulls_in_feature_columns(self):
 
         df_nulls_features = self.spark.read.csv('tests/fixtures/similarity/nulls_features.csv', header=True)
         df_no_nulls_features = self.spark.read.csv('tests/fixtures/similarity/no_nulls_features.csv', header=True)
