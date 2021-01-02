@@ -1,5 +1,6 @@
 from pyspark.sql import DataFrame
 import pyspark.sql.functions as f
+from pyspark.sql import Window
 
 
 class Preprocessor(object):
@@ -26,8 +27,25 @@ class Preprocessor(object):
         self.check_is_spark_data_frame()
         self.check_is_list()
         self.check_nulls_in_recipe_id()
+        self.remove_duplicate_recipes()
         self.check_no_duplicate_recipes()
         self.check_nulls_in_attribute_columns()
+
+    def remove_duplicate_recipes(self):
+        """
+        Removes duplicate recipes by randomly selecting one if duplicated.
+
+        :return:
+        """
+
+        window = Window \
+            .partitionBy(['recipe_id']) \
+            .orderBy(f.rand())
+
+        self.df_recipe_info = self.df_recipe_info\
+            .withColumn('rn', f.row_number().over(window))\
+            .filter(f.col('rn') == 1)\
+            .drop('rn')
 
     def check_is_list(self):
         """
