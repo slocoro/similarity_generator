@@ -143,12 +143,10 @@ class Preprocessor(object):
         """
 
         country_columns = [col for col in self.columns if 'country' in col]
-        print(country_columns)
         df_rectified_country_labels = self.df_recipe_info
 
         if country_columns:
             for country in country_columns:
-                print(country)
                 df_rectified_country_labels = df_rectified_country_labels\
                     .withColumn(country, f.regexp_replace(country,
                                                           'United States of America \(USA\)',
