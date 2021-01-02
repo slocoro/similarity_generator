@@ -63,8 +63,6 @@ class Preprocessor(object):
 
         columns_to_process = [col for col in self.df_recipe_info.columns if col != 'recipe_id']
 
-        print(columns_to_process)
-
         df_withspaces = self.df_recipe_info
 
         for col in columns_to_process:
