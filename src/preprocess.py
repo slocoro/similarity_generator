@@ -113,7 +113,9 @@ class Preprocessor(object):
         """
 
         self.remove_columns()
-        df_no_whitespaces = self.replace_whitespaces_with_underscores()
+
+        df_rectified_country_labels = self.rectify_country_labels()
+        df_no_whitespaces = self.replace_whitespaces_with_underscores(df_rectified_country_labels)
         df_lower_case = self.convert_columns_to_lower_case(df_no_whitespaces)
         df_converted_nas = self.convert_nas(df_lower_case)
         df_converted_prep_time = self.convert_prep_time(df_converted_nas)
@@ -133,16 +135,56 @@ class Preprocessor(object):
         else:
             self.df_recipe_info = self.df_recipe_info.select(['recipe_id'] + self.columns)
 
-    def replace_whitespaces_with_underscores(self):
+    def rectify_country_labels(self):
+        """
+        Rectifies inconsistent country labels.
+
+        :return: spark data frame
+        """
+
+        country_columns = [col for col in self.columns if 'country' in col]
+        print(country_columns)
+        df_rectified_country_labels = self.df_recipe_info
+
+        if country_columns:
+            for country in country_columns:
+                print(country)
+                df_rectified_country_labels = df_rectified_country_labels\
+                    .withColumn(country, f.regexp_replace(country,
+                                                          'United States of America \(USA\)',
+                                                          'United States'))
+                df_rectified_country_labels = df_rectified_country_labels\
+                    .withColumn(country, f.regexp_replace(country,
+                                                          'Israel and the Occupied Territories',
+                                                          'Israel'))
+                df_rectified_country_labels = df_rectified_country_labels\
+                    .withColumn(country, f.regexp_replace(country,
+                                                          'Korea, Republic of \(South Korea\)',
+                                                          'South Korea'))
+
+                df_rectified_country_labels = df_rectified_country_labels\
+                    .withColumn(country, f.regexp_replace(country,
+                                                          'Korea, Democratic Republic of \(North Korea\)',
+                                                          'South Korea'))
+
+                df_rectified_country_labels = df_rectified_country_labels\
+                    .withColumn(country, f.regexp_replace(country,
+                                                          'Great Britain',
+                                                          'United Kingdom'))
+
+        return df_rectified_country_labels
+
+    @staticmethod
+    def replace_whitespaces_with_underscores(df_rectified_country_labels):
         """
         Replaces whitespaces with underscores in every column except "recipe_id"
 
         :return:
         """
 
-        columns_to_process = [col for col in self.df_recipe_info.columns if col != 'recipe_id']
+        columns_to_process = [col for col in df_rectified_country_labels.columns if col != 'recipe_id']
 
-        df_withspaces = self.df_recipe_info
+        df_withspaces = df_rectified_country_labels
 
         for col in columns_to_process:
             df_withspaces = df_withspaces.withColumn(col, f.regexp_replace(col, ' ', '_'))

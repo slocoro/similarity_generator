@@ -23,6 +23,34 @@ class TestPreprocessor(PySparkTestCase):
         self.assertEqual(df_preprocessed_country.count(), df_recipe_info.count() - 1)
         self.assertEqual(len(df_preprocessed_country.columns), 1+4)
 
+    def test_rectify_country_labels(self):
+
+        df_countries = self.spark.read.csv('tests/fixtures/preprocess/rectify_country_labels.csv', header=True)
+
+        preprocessor = Preprocessor(df_recipe_info=df_countries, columns='all')
+        df_rectified_country_labels = preprocessor.rectify_country_labels()
+
+        check_recipe_2 = df_rectified_country_labels.filter(f.col('recipe_id') == '2').select('country').collect()[0][0]
+        self.assertEqual(check_recipe_2, 'United States')
+
+        check_recipe_3 = df_rectified_country_labels.filter(f.col('recipe_id') == '3').select('country').collect()[0][0]
+        self.assertEqual(check_recipe_3, 'Israel')
+
+        check_recipe_4 = df_rectified_country_labels.filter(f.col('recipe_id') == '4').select('country').collect()[0][0]
+        self.assertEqual(check_recipe_4, 'South Korea')
+
+        check_recipe_5 = df_rectified_country_labels.filter(f.col('recipe_id') == '5').select('country').collect()[0][0]
+        self.assertEqual(check_recipe_5, 'South Korea')
+
+        check_recipe_6 = df_rectified_country_labels.filter(f.col('recipe_id') == '6').select('country').collect()[0][0]
+        self.assertEqual(check_recipe_6, 'United Kingdom')
+
+        check_recipe_7 = df_rectified_country_labels.filter(f.col('recipe_id') == '7').select('country').collect()[0][0]
+        self.assertEqual(check_recipe_7, 'United States')
+
+        df_count_check = df_rectified_country_labels.where(f.col('country') == f.col('country_secondary'))
+        self.assertEqual(df_count_check.count(), 10)
+
     def test_convert_prep_time(self):
 
         df_long = self.spark.read.csv('tests/fixtures/preprocess/long.csv', header=True)
@@ -181,7 +209,7 @@ class TestPreprocessor(PySparkTestCase):
         df_whitespaces = self.spark.read.csv('tests/fixtures/preprocess/replace_whitespaces.csv', header=True)
 
         preprocess = Preprocessor(df_recipe_info=df_whitespaces, columns=[''])
-        df_no_whitespaces = preprocess.replace_whitespaces_with_underscores()
+        df_no_whitespaces = preprocess.replace_whitespaces_with_underscores(df_whitespaces)
 
         check_country = [v[0] for v in df_no_whitespaces.select('country').collect()]
         check_dish_category = [v[0] for v in df_no_whitespaces.select('dish_category').collect()]
