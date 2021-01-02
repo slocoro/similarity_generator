@@ -28,7 +28,7 @@ class Preprocessor(object):
         :return:
         """
 
-        assert isinstance(self.df_recipe_info, DataFrame)
+        assert isinstance(self.df_recipe_info, DataFrame), '"df_recipe_info" is not a spark data frame.'
 
     def check_if_recipe_id_contains_nulls(self):
         """
