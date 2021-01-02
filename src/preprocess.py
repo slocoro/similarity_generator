@@ -93,5 +93,21 @@ class Preprocessor(object):
 
         return df_no_whitespaces
 
+    def convert_columns_to_lower_case(self, df_no_whitspaces):
+        """
+        Converts all attriute columns to lower case.
+
+        :return: spark data frame
+        """
+
+        columns_to_process = [col for col in df_no_whitspaces.columns if col != 'recipe_id']
+
+        df_lower_case = df_no_whitspaces
+
+        for col in columns_to_process:
+            df_lower_case = df_lower_case.withColumn(col, f.lower(f.col(col)))
+
+        return df_lower_case
+
 
 

@@ -7,6 +7,22 @@ import pandas as pd
 
 class TestPreprocessor(PySparkTestCase):
 
+    def test_convert_columns_to_lower_case(self):
+
+        df_upper_case = self.spark.read.csv('tests/fixtures/preprocess/upper_case.csv', header=True)
+
+        preprocessor = Preprocessor(df_recipe_info=df_upper_case, columns='')
+
+        df_lower_case = preprocessor.convert_columns_to_lower_case(df_upper_case)
+
+        check_country = [v[0] for v in df_lower_case.select('country').collect()]
+        for v in check_country:
+            self.assertTrue(v.islower())
+
+        check_diet_type = [v[0] for v in df_lower_case.select('diet_type').collect()]
+        for v in check_diet_type:
+            self.assertTrue(v.islower())
+
     def test_check_nulls_in_attribute_columns(self):
 
         df_nulls_attributes = self.spark.read.csv('tests/fixtures/preprocess/nulls_attributes.csv', header=True)
