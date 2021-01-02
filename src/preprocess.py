@@ -82,9 +82,19 @@ class Preprocessor(object):
         :return: spark data frame
         """
 
+        self.remove_columns()
         df_no_whitespaces = self.replace_whitespaces_with_underscores()
         df_lower_case = self.convert_columns_to_lower_case(df_no_whitespaces)
         df_converted_nas = self.convert_nas(df_lower_case)
+
+    def remove_columns(self):
+        """
+        Removes columns not in self.columns
+
+        :return:
+        """
+
+        self.df_recipe_info = self.df_recipe_info.select(['recipe_id'] + self.columns)
 
     def replace_whitespaces_with_underscores(self):
         """

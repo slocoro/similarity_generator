@@ -9,6 +9,15 @@ import pandas as pd
 
 class TestPreprocessor(PySparkTestCase):
 
+    def test_remove_columns(self):
+
+        df_long = self.spark.read.csv('tests/fixtures/preprocess/long.csv', header=True)
+
+        preprocessor_2_columns = Preprocessor(df_recipe_info=df_long, columns=['country', 'protein'])
+        preprocessor_2_columns.remove_columns()
+
+        self.assertEqual(len(preprocessor_2_columns.df_recipe_info.columns), 1+2)
+
     def test_convert_one_hot(self):
 
         df_long = self.spark.read.csv('tests/fixtures/preprocess/long.csv', header=True)
