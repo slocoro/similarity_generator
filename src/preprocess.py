@@ -1,4 +1,5 @@
 from pyspark.sql import DataFrame
+import pyspark.sql.functions as f
 
 
 class Preprocessor(object):
@@ -18,6 +19,7 @@ class Preprocessor(object):
         self.columns = columns
 
         self.check_if_spark_data_frame()
+        self.check_if_recipe_id_contains_nulls()
 
     def check_if_spark_data_frame(self):
         """
@@ -27,3 +29,16 @@ class Preprocessor(object):
         """
 
         assert isinstance(self.df_recipe_info, DataFrame)
+
+    def check_if_recipe_id_contains_nulls(self):
+        """
+        Checks if column "recipe_id" contains nulls.
+
+        :return:
+        """
+
+        null_count = self.df_recipe_info.filter(f.col('recipe_id').isNull()).count()
+        assert null_count == 0, \
+            f'There are {null_count} null(s) in the "recipe_id" column in "df_recipe_info" when no nulls are allowed.'
+
+

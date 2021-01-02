@@ -17,4 +17,14 @@ class TestPreprocessor(PySparkTestCase):
         with self.assertRaises(AssertionError):
             Preprocessor(df_recipe_info=pd_df_simple_table, columns='')
 
+    def test_check_if_recipe_id_contains_nulls(self):
+
+        df_nulls = self.spark.read.csv('tests/fixtures/preprocess/nulls_recipe_id.csv', header=True)
+        df_no_nulls = self.spark.read.csv('tests/fixtures/preprocess/no_nulls_recipe_id.csv', header=True)
+
+        Preprocessor(df_recipe_info=df_no_nulls, columns='')
+
+        with self.assertRaises(AssertionError):
+            Preprocessor(df_recipe_info=df_nulls, columns='')
+
 
