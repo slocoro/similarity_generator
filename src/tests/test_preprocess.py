@@ -23,6 +23,25 @@ class TestPreprocessor(PySparkTestCase):
         self.assertEqual(df_preprocessed_country.count(), df_recipe_info.count() - 1)
         self.assertEqual(len(df_preprocessed_country.columns), 1+4)
 
+    def test_convert_prep_time(self):
+
+        df_long = self.spark.read.csv('tests/fixtures/preprocess/long.csv', header=True)
+
+        preprocessor_all = Preprocessor(df_recipe_info=df_long, columns='all')
+        df_converted_prep_time_all = preprocessor_all.convert_prep_time(df_long)
+
+        recipe_2_check = df_converted_prep_time_all\
+            .filter(f.col('recipe_id') == '2')\
+            .select('prep_time')\
+            .collect()[0][0]
+
+        self.assertEqual(recipe_2_check, '60')
+
+        preprocessor_country = Preprocessor(df_recipe_info=df_long, columns=['country'])
+        df_converted_prep_time_country = preprocessor_country.convert_prep_time(df_long)
+
+        self.assertEqual(len(df_converted_prep_time_country.columns), len(df_long.columns))
+
     def test_convert_column_argument(self):
 
         df_long = self.spark.read.csv('tests/fixtures/preprocess/long.csv', header=True)

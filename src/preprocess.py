@@ -1,5 +1,6 @@
 from pyspark.sql import DataFrame
 import pyspark.sql.functions as f
+from pyspark.sql.types import *
 from pyspark.sql import Window
 
 
@@ -115,7 +116,8 @@ class Preprocessor(object):
         df_no_whitespaces = self.replace_whitespaces_with_underscores()
         df_lower_case = self.convert_columns_to_lower_case(df_no_whitespaces)
         df_converted_nas = self.convert_nas(df_lower_case)
-        df_one_hot = self.convert_to_one_hot(df_converted_nas)
+        df_converted_prep_time = self.convert_prep_time(df_converted_nas)
+        df_one_hot = self.convert_to_one_hot(df_converted_prep_time)
 
         return df_one_hot
 
@@ -165,6 +167,26 @@ class Preprocessor(object):
             df_lower_case = df_lower_case.withColumn(col, f.lower(f.col(col)))
 
         return df_lower_case
+
+    def convert_prep_time(self, df_converted_nas):
+        """
+        Converts prep times in ranges to upper bound of range.
+
+        :param df_converted_nas: spark data frame
+        :return: spark data frame
+        """
+
+        if 'prep_time' in self.columns:
+            convert_prep_time = f.udf(lambda x: x.split('-')[-1], StringType())
+
+            df_converted_nas = df_converted_nas.withColumn('prep_time_copy', f.col('prep_time'))
+
+            df_converted_prep_time = df_converted_nas.withColumn('prep_time', convert_prep_time(df_converted_nas.prep_time_copy))
+            df_converted_prep_time = df_converted_prep_time.drop('prep_time_copy')
+
+            return df_converted_prep_time
+        else:
+            return df_converted_nas
 
     @staticmethod
     def convert_nas(df_lower_case):
