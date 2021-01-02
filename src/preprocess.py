@@ -26,9 +26,20 @@ class Preprocessor(object):
 
         self.check_is_spark_data_frame()
         self.check_is_list()
+        self.convert_column_argument()
         self.check_nulls_in_recipe_id()
         self.remove_duplicate_recipes()
         self.check_nulls_in_attribute_columns()
+
+    def convert_column_argument(self):
+        """
+        Converts column argument to list of columns names in df_recipe_info (without recipe_id).
+
+        :return:
+        """
+
+        if self.columns == 'all':
+            self.columns = [col for col in self.df_recipe_info.columns if col != 'recipe_id']
 
     def remove_duplicate_recipes(self):
         """

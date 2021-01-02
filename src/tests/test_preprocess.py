@@ -13,13 +13,19 @@ class TestPreprocessor(PySparkTestCase):
 
         df_recipe_info = self.spark.read.csv('tests/fixtures/preprocess/recipe_info.csv', header=True)
 
+    def test_convert_column_argument(self):
+
+        df_long = self.spark.read.csv('tests/fixtures/preprocess/long.csv', header=True)
+
+        preprocessor = Preprocessor(df_recipe_info=df_long, columns='all')
+
+        self.assertEqual(len(df_long.columns)-1, len(preprocessor.columns))
+
     def test_remove_duplicate_recipes(self):
 
         df_duplicate_recipes = self.spark.read.csv('tests/fixtures/preprocess/duplicate_recipes.csv', header=True)
-        df_duplicate_recipes.show()
 
         preprocessor = Preprocessor(df_recipe_info=df_duplicate_recipes, columns='all')
-        preprocessor.df_recipe_info.show()
 
         self.assertEqual(df_duplicate_recipes.count()-1, preprocessor.df_recipe_info.count())
 
