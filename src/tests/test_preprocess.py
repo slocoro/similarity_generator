@@ -7,6 +7,22 @@ import pandas as pd
 
 class TestPreprocessor(PySparkTestCase):
 
+    def test_convert_nas(self):
+
+        df_nas = self.spark.read.csv('tests/fixtures/preprocess/nas.csv', header=True)
+
+        preprocessor = Preprocessor(df_recipe_info=df_nas, columns='')
+
+        df_converted_nas = preprocessor.convert_nas(df_nas)
+
+        check_protein = [v[0] for v in df_converted_nas.select('protein').collect()]
+        self.assertEqual(2, check_protein.count('protein_not_applicable'))
+
+        check_protein_cut = [v[0] for v in df_converted_nas.select('protein_cut').collect()]
+        self.assertEqual(2, check_protein_cut.count('protein_cut_not_applicable'))
+
+        self.assertEqual(len(df_nas.columns), len(df_converted_nas.columns))
+
     def test_convert_columns_to_lower_case(self):
 
         df_upper_case = self.spark.read.csv('tests/fixtures/preprocess/upper_case.csv', header=True)

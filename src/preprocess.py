@@ -110,5 +110,22 @@ class Preprocessor(object):
 
         return df_lower_case
 
+    @staticmethod
+    def convert_nas(df_lower_case):
+        """
+        Converts "#n/a" to column_name+not_applicable.
+
+        :param df_lower_case: spark data frame
+        :return: spark data frame
+        """
+
+        columns_to_process = [col for col in df_lower_case.columns if col != 'recipe_id']
+
+        df_converted_nas = df_lower_case
+
+        for col in columns_to_process:
+            df_converted_nas = df_converted_nas.withColumn(col, f.regexp_replace(col, '#n/a', col+'_not_applicable'))
+
+        return df_converted_nas
 
 
