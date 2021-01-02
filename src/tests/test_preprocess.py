@@ -106,7 +106,7 @@ class TestPreprocessor(PySparkTestCase):
         with self.assertRaises(AssertionError):
             Preprocessor(df_recipe_info=df_nulls_attributes, columns=[''])
 
-    def test_check_if_spark_data_frame(self):
+    def test_check_is_spark_data_frame(self):
 
         df_simple_table = self.spark.read.csv('tests/fixtures/preprocess/simple_table.csv', header=True)
         pd_df_simple_table = pd.read_csv('tests/fixtures/preprocess/simple_table.csv')
