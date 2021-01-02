@@ -1,7 +1,7 @@
-﻿recipe_id,country,diet_type
-1,Italy,Fish
-2,France,Meat
-3,France,Vegetarian
-4,Great Britain,
-5,Lebanon,Meat
-6,Lebanon,Vegetarian
+﻿recipe_id,col_1,col_2
+1,0,0
+2,1,1
+3,0,
+4,1
+5,0,0
+6,1,0
