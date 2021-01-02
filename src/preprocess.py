@@ -75,6 +75,18 @@ class Preprocessor(object):
 
             assert col_count == row_count, f'There are null(s) in "{col}".'
 
+    def preprocess(self):
+        """
+        Preprocess recipes data.
+
+        :return: spark data frame
+        """
+
+        df_no_whitespaces = self.replace_whitespaces_with_underscores()
+        df_lower_case = self.convert_columns_to_lower_case(df_no_whitespaces)
+        df_converted_nas = self.convert_nas(df_lower_case)
+
+
     def replace_whitespaces_with_underscores(self):
         """
         Replaces whitespaces with underscores in every column except "recipe_id"
