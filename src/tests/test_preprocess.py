@@ -9,6 +9,19 @@ import pandas as pd
 
 class TestPreprocessor(PySparkTestCase):
 
+    def test_preprocess(self):
+
+        df_recipe_info = self.spark.read.csv('tests/fixtures/preprocess/recipe_info.csv', header=True)
+
+    def test_check_is_list(self):
+
+        df_long = self.spark.read.csv('tests/fixtures/preprocess/long.csv', header=True)
+
+        Preprocessor(df_recipe_info=df_long, columns=['country', 'protein'])
+
+        with self.assertRaises(AssertionError):
+            Preprocessor(df_recipe_info=df_long, columns='protein')
+
     def test_remove_columns(self):
 
         df_long = self.spark.read.csv('tests/fixtures/preprocess/long.csv', header=True)
@@ -55,7 +68,7 @@ class TestPreprocessor(PySparkTestCase):
 
         df_nas = self.spark.read.csv('tests/fixtures/preprocess/nas.csv', header=True)
 
-        preprocessor = Preprocessor(df_recipe_info=df_nas, columns='')
+        preprocessor = Preprocessor(df_recipe_info=df_nas, columns=[''])
 
         df_converted_nas = preprocessor.convert_nas(df_nas)
 
@@ -71,7 +84,7 @@ class TestPreprocessor(PySparkTestCase):
 
         df_upper_case = self.spark.read.csv('tests/fixtures/preprocess/upper_case.csv', header=True)
 
-        preprocessor = Preprocessor(df_recipe_info=df_upper_case, columns='')
+        preprocessor = Preprocessor(df_recipe_info=df_upper_case, columns=[''])
 
         df_lower_case = preprocessor.convert_columns_to_lower_case(df_upper_case)
 
@@ -88,30 +101,30 @@ class TestPreprocessor(PySparkTestCase):
         df_nulls_attributes = self.spark.read.csv('tests/fixtures/preprocess/nulls_attributes.csv', header=True)
         df_no_nulls_attributes = self.spark.read.csv('tests/fixtures/preprocess/no_nulls_attributes.csv', header=True)
 
-        Preprocessor(df_recipe_info=df_no_nulls_attributes, columns='')
+        Preprocessor(df_recipe_info=df_no_nulls_attributes, columns=[''])
 
         with self.assertRaises(AssertionError):
-            Preprocessor(df_recipe_info=df_nulls_attributes, columns='')
+            Preprocessor(df_recipe_info=df_nulls_attributes, columns=[''])
 
     def test_check_if_spark_data_frame(self):
 
         df_simple_table = self.spark.read.csv('tests/fixtures/preprocess/simple_table.csv', header=True)
         pd_df_simple_table = pd.read_csv('tests/fixtures/preprocess/simple_table.csv')
 
-        Preprocessor(df_recipe_info=df_simple_table, columns='')
+        Preprocessor(df_recipe_info=df_simple_table, columns=[''])
 
         with self.assertRaises(AssertionError):
-            Preprocessor(df_recipe_info=pd_df_simple_table, columns='')
+            Preprocessor(df_recipe_info=pd_df_simple_table, columns=[''])
 
     def test_check_nulls_in_recipe_id(self):
 
         df_nulls = self.spark.read.csv('tests/fixtures/preprocess/nulls_recipe_id.csv', header=True)
         df_no_nulls = self.spark.read.csv('tests/fixtures/preprocess/no_nulls_recipe_id.csv', header=True)
 
-        Preprocessor(df_recipe_info=df_no_nulls, columns='')
+        Preprocessor(df_recipe_info=df_no_nulls, columns=[''])
 
         with self.assertRaises(AssertionError):
-            Preprocessor(df_recipe_info=df_nulls, columns='')
+            Preprocessor(df_recipe_info=df_nulls, columns=[''])
 
     def test_check_no_duplicate_recipes(self):
 
@@ -119,15 +132,15 @@ class TestPreprocessor(PySparkTestCase):
         df_no_duplicate_recipes = self.spark.read.csv('tests/fixtures/preprocess/no_duplicate_recipes.csv', header=True)
 
         with self.assertRaises(AssertionError):
-            Preprocessor(df_recipe_info=df_duplicate_recipes, columns='')
+            Preprocessor(df_recipe_info=df_duplicate_recipes, columns=[''])
 
-        Preprocessor(df_recipe_info=df_no_duplicate_recipes, columns='')
+        Preprocessor(df_recipe_info=df_no_duplicate_recipes, columns=[''])
 
     def test_replace_whitespaces(self):
 
         df_whitespaces = self.spark.read.csv('tests/fixtures/preprocess/replace_whitespaces.csv', header=True)
 
-        preprocess = Preprocessor(df_recipe_info=df_whitespaces, columns='')
+        preprocess = Preprocessor(df_recipe_info=df_whitespaces, columns=[''])
         df_no_whitespaces = preprocess.replace_whitespaces_with_underscores()
 
         check_country = [v[0] for v in df_no_whitespaces.select('country').collect()]

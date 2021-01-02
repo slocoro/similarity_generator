@@ -24,9 +24,19 @@ class Preprocessor(object):
         self.columns = columns
 
         self.check_if_spark_data_frame()
+        self.check_is_list()
         self.check_nulls_in_recipe_id()
         self.check_no_duplicate_recipes()
         self.check_nulls_in_attribute_columns()
+
+    def check_is_list(self):
+        """
+        Checks "columns" is a list.
+
+        :return:
+        """
+
+        assert isinstance(self.columns, list), '"columns" has to be a list.'
 
     def check_no_duplicate_recipes(self):
         """
