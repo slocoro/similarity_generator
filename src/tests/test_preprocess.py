@@ -31,6 +31,11 @@ class TestPreprocessor(PySparkTestCase):
 
         self.assertEqual(len(preprocessor_2_columns.df_recipe_info.columns), 1+2)
 
+        preprocessor_all = Preprocessor(df_recipe_info=df_long, columns='all')
+        preprocessor_all.remove_columns()
+
+        self.assertEqual(len(preprocessor_all.df_recipe_info.columns), 4)
+
     def test_convert_one_hot(self):
 
         df_long = self.spark.read.csv('tests/fixtures/preprocess/long.csv', header=True)

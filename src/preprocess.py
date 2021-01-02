@@ -36,7 +36,8 @@ class Preprocessor(object):
         :return:
         """
 
-        assert isinstance(self.columns, list), '"columns" has to be a list.'
+        if self.columns is not 'all':
+            assert isinstance(self.columns, list), '"columns" has to be a list.'
 
     def check_no_duplicate_recipes(self):
         """
@@ -107,7 +108,10 @@ class Preprocessor(object):
         :return:
         """
 
-        self.df_recipe_info = self.df_recipe_info.select(['recipe_id'] + self.columns)
+        if self.columns == 'all':
+            pass
+        else:
+            self.df_recipe_info = self.df_recipe_info.select(['recipe_id'] + self.columns)
 
     def replace_whitespaces_with_underscores(self):
         """
