@@ -10,6 +10,10 @@ class Preprocessor(object):
 
     def __init__(self, df_recipe_info, columns):
         """
+        Performs the following assumption checks during initialization:
+            - checks if df_recipe_info is a spark data frame
+            - checks if "recipe_id" contains nulls
+            - checks if "recipe_id" contains duplicate
 
         :param df_recipe_info: spark data frame
         :param columns: list of string, columns to use for similarity calculation
