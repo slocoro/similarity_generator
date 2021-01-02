@@ -14,6 +14,7 @@ class Preprocessor(object):
             - checks if df_recipe_info is a spark data frame
             - checks if "recipe_id" contains nulls
             - checks if "recipe_id" contains duplicate
+            - checks if attribute columns contain nulls
 
         :param df_recipe_info: spark data frame
         :param columns: list of string, columns to use for similarity calculation
@@ -25,6 +26,7 @@ class Preprocessor(object):
         self.check_if_spark_data_frame()
         self.check_if_recipe_id_contains_nulls()
         self.check_no_duplicate_recipes()
+        self.check_nulls_in_attribute_columns()
 
     def check_no_duplicate_recipes(self):
         """
@@ -58,6 +60,21 @@ class Preprocessor(object):
         assert null_count == 0, \
             f'There are {null_count} null(s) in the "recipe_id" column in "df_recipe_info" when no nulls are allowed.'
 
+    def check_nulls_in_attribute_columns(self):
+        """
+        Checks if nulls in attribute columns.
+
+        :return:
+        """
+
+        columns_to_check = [col for col in self.df_recipe_info.columns if col != 'recipe_id']
+        row_count = self.df_recipe_info.count()
+
+        for col in columns_to_check:
+            col_count = self.df_recipe_info.filter(f.col(col).isNotNull()).select(col).count()
+
+            assert col_count == row_count, f'There are null(s) in "{col}".'
+
     def replace_whitespaces_with_underscores(self):
         """
         Replaces whitespaces with underscores in every column except "recipe_id"
@@ -75,5 +92,6 @@ class Preprocessor(object):
         df_no_whitespaces = df_withspaces
 
         return df_no_whitespaces
+
 
 

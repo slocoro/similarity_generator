@@ -7,6 +7,16 @@ import pandas as pd
 
 class TestPreprocessor(PySparkTestCase):
 
+    def test_check_nulls_in_attribute_columns(self):
+
+        df_nulls_attributes = self.spark.read.csv('tests/fixtures/preprocess/nulls_attributes.csv', header=True)
+        df_no_nulls_attributes = self.spark.read.csv('tests/fixtures/preprocess/no_nulls_attributes.csv', header=True)
+
+        Preprocessor(df_recipe_info=df_no_nulls_attributes, columns='')
+
+        with self.assertRaises(AssertionError):
+            Preprocessor(df_recipe_info=df_nulls_attributes, columns='')
+
     def test_check_if_spark_data_frame(self):
 
         df_simple_table = self.spark.read.csv('tests/fixtures/preprocess/simple_table.csv', header=True)
