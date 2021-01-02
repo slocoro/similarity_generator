@@ -1,11 +1,46 @@
 from tests import PySparkTestCase
 
+import pyspark.sql.functions as f
+
 from preprocess import Preprocessor
 
 import pandas as pd
 
 
 class TestPreprocessor(PySparkTestCase):
+
+    def test_convert_one_hot(self):
+
+        df_long = self.spark.read.csv('tests/fixtures/preprocess/long.csv', header=True)
+
+        preprocessor_all = Preprocessor(df_recipe_info=df_long, columns=['country', 'protein', 'prep_time'])
+        df_one_hot_all = preprocessor_all.convert_to_one_hot(df_long)
+
+        self.assertEqual(len(df_one_hot_all.columns), 13+1)
+
+        columns_all = df_one_hot_all.columns
+
+        country_columns = [col for col in columns_all if 'country' in col]
+        df_country_check = df_one_hot_all.withColumn('total', sum(df_one_hot_all[col] for col in country_columns))
+        country_max = df_country_check.select(f.max('total')).collect()[0][0]
+        self.assertEqual(1, country_max)
+
+        protein_columns = [col for col in columns_all if 'protein' in col]
+        df_protein_check = df_one_hot_all.withColumn('total', sum(df_one_hot_all[col] for col in protein_columns))
+        protein_max = df_protein_check.select(f.max('total')).collect()[0][0]
+        self.assertEqual(1, protein_max)
+
+        prep_time_columns = [col for col in columns_all if 'prep_time' in col]
+        df_prep_time_check = df_one_hot_all.withColumn('total', sum(df_one_hot_all[col] for col in prep_time_columns))
+        prep_time_max = df_prep_time_check.select(f.max('total')).collect()[0][0]
+        self.assertEqual(1, prep_time_max)
+
+        self.assertEqual(df_long.count(), df_one_hot_all.count())
+
+        preprocessor_country = Preprocessor(df_recipe_info=df_long, columns=['country'])
+        df_one_hot_country = preprocessor_country.convert_to_one_hot(df_long)
+
+        self.assertEqual(len(df_one_hot_country.columns), 1+4+2)
 
     def test_convert_nas(self):
 

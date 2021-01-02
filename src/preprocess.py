@@ -86,7 +86,6 @@ class Preprocessor(object):
         df_lower_case = self.convert_columns_to_lower_case(df_no_whitespaces)
         df_converted_nas = self.convert_nas(df_lower_case)
 
-
     def replace_whitespaces_with_underscores(self):
         """
         Replaces whitespaces with underscores in every column except "recipe_id"
@@ -140,4 +139,24 @@ class Preprocessor(object):
 
         return df_converted_nas
 
+    def convert_to_one_hot(self, df_lower_case):
+        """
+        Converts recipes description data to one hot using columns attribute.
+
+        :param df_lower_case: spark data frame
+        :return: spark data frame
+        """
+
+        df_one_hot = df_lower_case
+
+        for col in self.columns:
+            unique_labels = [v[0] for v in df_lower_case.select(col).distinct().collect()]
+
+            for label in unique_labels:
+                df_one_hot = df_one_hot\
+                    .withColumn(col+'_'+label, f.when(f.col(col) == label, 1).otherwise(0))
+
+            df_one_hot = df_one_hot.drop(col)
+
+        return df_one_hot
 
