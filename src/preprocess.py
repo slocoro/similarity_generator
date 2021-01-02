@@ -28,7 +28,6 @@ class Preprocessor(object):
         self.check_is_list()
         self.check_nulls_in_recipe_id()
         self.remove_duplicate_recipes()
-        self.check_no_duplicate_recipes()
         self.check_nulls_in_attribute_columns()
 
     def remove_duplicate_recipes(self):
@@ -56,18 +55,6 @@ class Preprocessor(object):
 
         if self.columns is not 'all':
             assert isinstance(self.columns, list), '"columns" has to be a list.'
-
-    def check_no_duplicate_recipes(self):
-        """
-        Checks there are no duplicates in the "recipe_id" column.
-
-        :return:
-        """
-
-        row_count = self.df_recipe_info.count()
-        recipe_id_count = self.df_recipe_info.select('recipe_id').distinct().count()
-
-        assert row_count == recipe_id_count, 'There are duplicates in "recipe_id".'
 
     def check_is_spark_data_frame(self):
         """
