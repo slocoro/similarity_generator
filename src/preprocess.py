@@ -86,6 +86,9 @@ class Preprocessor(object):
         df_no_whitespaces = self.replace_whitespaces_with_underscores()
         df_lower_case = self.convert_columns_to_lower_case(df_no_whitespaces)
         df_converted_nas = self.convert_nas(df_lower_case)
+        df_one_hot = self.convert_to_one_hot(df_converted_nas)
+
+        return df_one_hot
 
     def remove_columns(self):
         """
