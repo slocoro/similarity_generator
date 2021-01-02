@@ -27,4 +27,20 @@ class TestPreprocessor(PySparkTestCase):
         with self.assertRaises(AssertionError):
             Preprocessor(df_recipe_info=df_nulls, columns='')
 
+    def test_replace_whitespaces(self):
+
+        df_whitespaces = self.spark.read.csv('tests/fixtures/preprocess/replace_whitespaces.csv', header=True)
+
+        preprocess = Preprocessor(df_recipe_info=df_whitespaces, columns='')
+        df_no_whitespaces = preprocess.replace_whitespaces_with_underscores()
+
+        check_country = [v[0] for v in df_no_whitespaces.select('country').collect()]
+        check_dish_category = [v[0] for v in df_no_whitespaces.select('dish_category').collect()]
+
+        for v in check_country:
+            self.assertTrue(' ' not in v)
+        for v in check_dish_category:
+            self.assertTrue(' ' not in v)
+
+        self.assertEqual(len(df_whitespaces.columns), len(df_no_whitespaces.columns))
 

@@ -41,4 +41,24 @@ class Preprocessor(object):
         assert null_count == 0, \
             f'There are {null_count} null(s) in the "recipe_id" column in "df_recipe_info" when no nulls are allowed.'
 
+    def replace_whitespaces_with_underscores(self):
+        """
+        Replaces whitespaces with underscores in every column except "recipe_id"
+
+        :return:
+        """
+
+        columns_to_process = [col for col in self.df_recipe_info.columns if col != 'recipe_id']
+
+        print(columns_to_process)
+
+        df_withspaces = self.df_recipe_info
+
+        for col in columns_to_process:
+            df_withspaces = df_withspaces.withColumn(col, f.regexp_replace(col, ' ', '_'))
+
+        df_no_whitespaces = df_withspaces
+
+        return df_no_whitespaces
+
 
