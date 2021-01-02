@@ -93,7 +93,8 @@ class Preprocessor(object):
 
         return df_no_whitespaces
 
-    def convert_columns_to_lower_case(self, df_no_whitspaces):
+    @staticmethod
+    def convert_columns_to_lower_case(df_no_whitspaces):
         """
         Converts all attriute columns to lower case.
 
