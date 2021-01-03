@@ -4,7 +4,7 @@ from pyspark.sql.types import *
 from pyspark.sql import Window
 
 
-class Preprocessor(object):
+class Preprocess(object):
     """
     Prepare data for similarity calculation.
 
