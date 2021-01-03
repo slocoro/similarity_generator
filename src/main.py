@@ -15,8 +15,8 @@ file_name = sys.argv[1]
 
 df_labels = spark.read.csv(f'data/{file_name}', header=True)
 
-COLUMNS = ['gender']
-INDEX_COLUMN = 'id'
+COLUMNS = 'all'
+INDEX_COLUMN = 'recipe_id'
 SIMILARITY_TYPE = 'euclidean'
 
 etl_created = create_timestamp()
