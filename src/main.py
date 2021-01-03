@@ -6,11 +6,14 @@ from utils import create_timestamp
 from utils import create_parameters_table
 
 import os
+import sys
 
 
 spark = create_spark_session('generate_similarities')
 
-df_recipe_info = spark.read.csv('data/recipes_info.csv', header=True)
+file_name = sys.argv[1]
+
+df_recipe_info = spark.read.csv(f'data/{file_name}', header=True)
 
 COLUMNS = 'all'
 INDEX_COLUMN = 'recipe_id'
