@@ -21,7 +21,7 @@ SIMILARITY_TYPE = 'euclidean'
 
 etl_created = create_timestamp()
 
-preprocessor = Preprocess(df_recipe_info=df_recipe_info,
+preprocessor = Preprocess(df_labels=df_recipe_info,
                           columns='all')
 df_recipe_features = preprocessor.preprocess()
 pd_df_recipe_features = df_recipe_features.toPandas()
