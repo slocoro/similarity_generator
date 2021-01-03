@@ -44,7 +44,7 @@ class Similarity(object):
         :return:
         """
 
-        columns_to_check = [col[1] for col in self.df_features.dtypes if 'id' not in col[0]]
+        columns_to_check = [col[1] for col in self.df_features.dtypes if col[0] != self.index_column]
 
         assert all((col == 'int' or col == 'double') for col in columns_to_check)
 
@@ -55,7 +55,7 @@ class Similarity(object):
         :return:
         """
 
-        columns_to_check = [col for col in self.df_features.columns if col != 'recipe_id']
+        columns_to_check = [col for col in self.df_features.columns if col != self.index_column]
         row_count = self.df_features.count()
 
         for col in columns_to_check:
