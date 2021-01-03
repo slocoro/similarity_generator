@@ -10,41 +10,43 @@ class Preprocess(object):
 
     """
 
-    def __init__(self, df_recipe_info, columns):
+    def __init__(self, df_labels, columns, index_column='recipe_id'):
         """
         Performs the following assumption checks/manipulations during initialization:
-            - checks if "df_recipe_info" is a spark data frame
+            - checks if "df_labels" is a spark data frame
             - checks "columns" is a list or "all"
-            - convert "columns" to list of containing all columns from "df_recipe_id"
-            - checks nulls in "recipe_id"
-            - removes duplicates from "recipe_id"
+            - convert "columns" to list of strings containing all columns from "df_labels"
+            - checks nulls in index_column
+            - removes duplicates from index_column
             - checks if attribute columns contain nulls
 
-        :param df_recipe_info: spark data frame
+        :param df_labels: spark data frame
         :param columns: list of string, columns to use for similarity calculation
+        :param index_column: string, columns to use for similarity calculation
         """
 
-        self.df_recipe_info = df_recipe_info
+        self.df_labels = df_labels
         self.columns = columns
+        self.index_column = index_column
 
         self.check_is_spark_data_frame()
         self.check_is_list()
         self.convert_column_argument()
-        self.check_nulls_in_recipe_id()
-        self.remove_duplicate_recipes()
+        self.check_nulls_in_index_column()
+        self.remove_duplicate_indexes()
         self.check_nulls_in_attribute_columns()
 
     def convert_column_argument(self):
         """
-        Converts column argument to list of columns names in df_recipe_info (without recipe_id).
+        Converts column argument to list of columns names in df_labels (without index_column).
 
         :return:
         """
 
         if self.columns == 'all':
-            self.columns = [col for col in self.df_recipe_info.columns if col != 'recipe_id']
+            self.columns = [col for col in self.df_labels.columns if col != self.index_column]
 
-    def remove_duplicate_recipes(self):
+    def remove_duplicate_indexes(self):
         """
         Removes duplicate recipes by randomly selecting one if duplicated.
 
@@ -52,10 +54,10 @@ class Preprocess(object):
         """
 
         window = Window \
-            .partitionBy(['recipe_id']) \
+            .partitionBy([self.index_column]) \
             .orderBy(f.rand())
 
-        self.df_recipe_info = self.df_recipe_info\
+        self.df_labels = self.df_labels\
             .withColumn('rn', f.row_number().over(window))\
             .filter(f.col('rn') == 1)\
             .drop('rn')
@@ -72,23 +74,23 @@ class Preprocess(object):
 
     def check_is_spark_data_frame(self):
         """
-        Checks if df_recipe_info is a spark data frame.
+        Checks if df_labels is a spark data frame.
 
         :return:
         """
 
-        assert isinstance(self.df_recipe_info, DataFrame), '"df_recipe_info" is not a spark data frame.'
+        assert isinstance(self.df_labels, DataFrame), '"df_labels" is not a spark data frame.'
 
-    def check_nulls_in_recipe_id(self):
+    def check_nulls_in_index_column(self):
         """
         Checks if column "recipe_id" contains nulls.
 
         :return:
         """
 
-        null_count = self.df_recipe_info.filter(f.col('recipe_id').isNull()).count()
+        null_count = self.df_labels.filter(f.col(self.index_column).isNull()).count()
         assert null_count == 0, \
-            f'There are {null_count} null(s) in the "recipe_id" column in "df_recipe_info" when no nulls are allowed.'
+            f'There are {null_count} null(s) in the "index_column" column in "df_labels" when no nulls are allowed.'
 
     def check_nulls_in_attribute_columns(self):
         """
@@ -97,11 +99,11 @@ class Preprocess(object):
         :return:
         """
 
-        columns_to_check = [col for col in self.df_recipe_info.columns if col != 'recipe_id']
-        row_count = self.df_recipe_info.count()
+        columns_to_check = [col for col in self.df_labels.columns if col != self.index_column]
+        row_count = self.df_labels.count()
 
         for col in columns_to_check:
-            col_count = self.df_recipe_info.filter(f.col(col).isNotNull()).select(col).count()
+            col_count = self.df_labels.filter(f.col(col).isNotNull()).select(col).count()
 
             assert col_count == row_count, f'There are null(s) in "{col}".'
 
@@ -133,7 +135,7 @@ class Preprocess(object):
         if self.columns == 'all':
             pass
         else:
-            self.df_recipe_info = self.df_recipe_info.select(['recipe_id'] + self.columns)
+            self.df_labels = self.df_labels.select([self.index_column] + self.columns)
 
     def rectify_country_labels(self):
         """
@@ -143,7 +145,7 @@ class Preprocess(object):
         """
 
         country_columns = [col for col in self.columns if 'country' in col]
-        df_rectified_country_labels = self.df_recipe_info
+        df_rectified_country_labels = self.df_labels
 
         if country_columns:
             for country in country_columns:
@@ -172,16 +174,15 @@ class Preprocess(object):
 
         return df_rectified_country_labels
 
-    @staticmethod
-    def replace_whitespaces_with_underscores(df_rectified_country_labels):
+    def replace_whitespaces_with_underscores(self, df_rectified_country_labels):
         """
-        Replaces whitespaces with underscores in every column except "recipe_id"
+        Replaces whitespaces with underscores in every column except "index_column"
 
         :param df_rectified_country_labels: spark data frame
         :return: spark data frame
         """
 
-        columns_to_process = [col for col in df_rectified_country_labels.columns if col != 'recipe_id']
+        columns_to_process = [col for col in df_rectified_country_labels.columns if col != self.index_column]
 
         df_withspaces = df_rectified_country_labels
 
@@ -192,8 +193,7 @@ class Preprocess(object):
 
         return df_no_whitespaces
 
-    @staticmethod
-    def convert_columns_to_lower_case(df_no_whitspaces):
+    def convert_columns_to_lower_case(self, df_no_whitspaces):
         """
         Converts all attriute columns to lower case.
 
@@ -201,7 +201,7 @@ class Preprocess(object):
         :return: spark data frame
         """
 
-        columns_to_process = [col for col in df_no_whitspaces.columns if col != 'recipe_id']
+        columns_to_process = [col for col in df_no_whitspaces.columns if col != self.index_column]
 
         df_lower_case = df_no_whitspaces
 
@@ -210,8 +210,7 @@ class Preprocess(object):
 
         return df_lower_case
 
-    @staticmethod
-    def convert_nas(df_lower_case):
+    def convert_nas(self, df_lower_case):
         """
         Converts "#n/a" to column_name+not_applicable.
 
@@ -219,7 +218,7 @@ class Preprocess(object):
         :return: spark data frame
         """
 
-        columns_to_process = [col for col in df_lower_case.columns if col != 'recipe_id']
+        columns_to_process = [col for col in df_lower_case.columns if col != self.index_column]
 
         df_converted_nas = df_lower_case
 
