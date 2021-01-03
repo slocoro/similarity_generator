@@ -15,6 +15,10 @@ class TestSimiarity(PySparkTestCase):
         df_simple_table = self.spark.read.csv('tests/fixtures/similarity/simple_table.csv', header=True)
         pd_df_simple_table = pd.read_csv('tests/fixtures/similarity/simple_table.csv')
 
+        columns_to_convert = [col for col in df_simple_table.columns if 'id' not in col]
+        for col in columns_to_convert:
+            df_simple_table = df_simple_table.withColumn(col, f.col(col).cast(IntegerType()))
+
         Similarity(df_features=df_simple_table)
 
         with self.assertRaises(AssertionError):
@@ -24,6 +28,14 @@ class TestSimiarity(PySparkTestCase):
 
         df_nulls_features = self.spark.read.csv('tests/fixtures/similarity/nulls_features.csv', header=True)
         df_no_nulls_features = self.spark.read.csv('tests/fixtures/similarity/no_nulls_features.csv', header=True)
+
+        columns_to_convert_nulls = [col for col in df_nulls_features.columns if 'id' not in col]
+        for col in columns_to_convert_nulls:
+            df_nulls_features = df_nulls_features.withColumn(col, f.col(col).cast(IntegerType()))
+
+        columns_to_convert_no_nulls = [col for col in df_no_nulls_features.columns if 'id' not in col]
+        for col in columns_to_convert_no_nulls:
+            df_no_nulls_features = df_no_nulls_features.withColumn(col, f.col(col).cast(IntegerType()))
 
         Similarity(df_features=df_no_nulls_features)
 
