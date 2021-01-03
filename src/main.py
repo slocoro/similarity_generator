@@ -13,16 +13,17 @@ spark = create_spark_session('generate_similarities')
 
 file_name = sys.argv[1]
 
-df_recipe_info = spark.read.csv(f'data/{file_name}', header=True)
+df_labels = spark.read.csv(f'data/{file_name}', header=True)
 
-COLUMNS = 'all'
-INDEX_COLUMN = 'recipe_id'
+COLUMNS = ['gender']
+INDEX_COLUMN = 'id'
 SIMILARITY_TYPE = 'euclidean'
 
 etl_created = create_timestamp()
 
-preprocessor = Preprocess(df_labels=df_recipe_info,
-                          columns='all')
+preprocessor = Preprocess(df_labels=df_labels,
+                          columns=COLUMNS,
+                          index_column=INDEX_COLUMN)
 df_recipe_features = preprocessor.preprocess()
 pd_df_recipe_features = df_recipe_features.toPandas()
 features_dir = f'output/{etl_created}/features'
