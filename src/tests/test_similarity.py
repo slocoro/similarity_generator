@@ -59,23 +59,17 @@ class TestSimiarity(PySparkTestCase):
 
         similarity_cos = Similarity(df_features=df_features_int, similarity_type='cosine')
 
-        pd_df_similarity_cos, mat_similarity_cos, _ = similarity_cos.generate()
+        pd_df_similarity_cos, _ = similarity_cos.generate()
 
         self.assertEqual(pd_df_similarity_cos.shape[0], df_features.count())
         self.assertEqual(pd_df_similarity_cos.shape[1], df_features.count())
 
-        self.assertEqual(mat_similarity_cos.shape[0], df_features.count())
-        self.assertEqual(mat_similarity_cos.shape[1], df_features.count())
-
         similarity_euc = Similarity(df_features=df_features_int, similarity_type='euclidean')
 
-        pd_df_similarity_euc, mat_similarity_euc, _ = similarity_euc.generate()
+        pd_df_similarity_euc, _ = similarity_euc.generate()
 
         self.assertEqual(pd_df_similarity_euc.shape[0], df_features.count())
         self.assertEqual(pd_df_similarity_euc.shape[1], df_features.count())
-
-        self.assertEqual(mat_similarity_euc.shape[0], df_features.count())
-        self.assertEqual(mat_similarity_euc.shape[1], df_features.count())
 
         similarity_fail = Similarity(df_features=df_features_int, similarity_type='test')
         with self.assertRaises(ValueError):

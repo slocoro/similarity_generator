@@ -67,7 +67,7 @@ class Similarity(object):
         """
         Generates similarity scores.
 
-        :return: pandas data frame (wide), numpy ndarray (wide), pandas data frame (long)
+        :return: pandas data frame (wide), pandas data frame (long)
         """
 
         pd_df_similarity = self.df_features.toPandas()
@@ -85,7 +85,7 @@ class Similarity(object):
 
         pd_df_similarity_long = self.convert_to_long_format(pd_df_similarity)
 
-        return pd_df_similarity, mat_similarity, pd_df_similarity_long
+        return pd_df_similarity, pd_df_similarity_long
 
     @staticmethod
     def convert_to_long_format(pd_df_similarity):
