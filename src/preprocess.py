@@ -1,8 +1,10 @@
 from pyspark.sql import DataFrame
 import pyspark.sql.functions as f
+from pyspark.sql.types import *
+from pyspark.sql import Window
 
 
-class Preprocessor(object):
+class Preprocess(object):
     """
     Prepare data for similarity calculation.
 
@@ -10,10 +12,12 @@ class Preprocessor(object):
 
     def __init__(self, df_recipe_info, columns):
         """
-        Performs the following assumption checks during initialization:
-            - checks if df_recipe_info is a spark data frame
-            - checks if "recipe_id" contains nulls
-            - checks if "recipe_id" contains duplicate
+        Performs the following assumption checks/manipulations during initialization:
+            - checks if "df_recipe_info" is a spark data frame
+            - checks "columns" is a list or "all"
+            - convert "columns" to list of containing all columns from "df_recipe_id"
+            - checks nulls in "recipe_id"
+            - removes duplicates from "recipe_id"
             - checks if attribute columns contain nulls
 
         :param df_recipe_info: spark data frame
@@ -23,24 +27,50 @@ class Preprocessor(object):
         self.df_recipe_info = df_recipe_info
         self.columns = columns
 
-        self.check_if_spark_data_frame()
-        self.check_if_recipe_id_contains_nulls()
-        self.check_no_duplicate_recipes()
+        self.check_is_spark_data_frame()
+        self.check_is_list()
+        self.convert_column_argument()
+        self.check_nulls_in_recipe_id()
+        self.remove_duplicate_recipes()
         self.check_nulls_in_attribute_columns()
 
-    def check_no_duplicate_recipes(self):
+    def convert_column_argument(self):
         """
-        Checks there are no duplicates in the "recipe_id" column.
+        Converts column argument to list of columns names in df_recipe_info (without recipe_id).
 
         :return:
         """
 
-        row_count = self.df_recipe_info.count()
-        recipe_id_count = self.df_recipe_info.select('recipe_id').distinct().count()
+        if self.columns == 'all':
+            self.columns = [col for col in self.df_recipe_info.columns if col != 'recipe_id']
 
-        assert row_count == recipe_id_count, 'There are duplicates in "recipe_id".'
+    def remove_duplicate_recipes(self):
+        """
+        Removes duplicate recipes by randomly selecting one if duplicated.
 
-    def check_if_spark_data_frame(self):
+        :return:
+        """
+
+        window = Window \
+            .partitionBy(['recipe_id']) \
+            .orderBy(f.rand())
+
+        self.df_recipe_info = self.df_recipe_info\
+            .withColumn('rn', f.row_number().over(window))\
+            .filter(f.col('rn') == 1)\
+            .drop('rn')
+
+    def check_is_list(self):
+        """
+        Checks "columns" is a list.
+
+        :return:
+        """
+
+        if self.columns is not 'all':
+            assert isinstance(self.columns, list), '"columns" has to be a list.'
+
+    def check_is_spark_data_frame(self):
         """
         Checks if df_recipe_info is a spark data frame.
 
@@ -49,7 +79,7 @@ class Preprocessor(object):
 
         assert isinstance(self.df_recipe_info, DataFrame), '"df_recipe_info" is not a spark data frame.'
 
-    def check_if_recipe_id_contains_nulls(self):
+    def check_nulls_in_recipe_id(self):
         """
         Checks if column "recipe_id" contains nulls.
 
@@ -75,16 +105,85 @@ class Preprocessor(object):
 
             assert col_count == row_count, f'There are null(s) in "{col}".'
 
-    def replace_whitespaces_with_underscores(self):
+    def preprocess(self):
         """
-        Replaces whitespaces with underscores in every column except "recipe_id"
+        Preprocess recipes data.
+
+        :return: spark data frame
+        """
+
+        self.remove_columns()
+
+        df_rectified_country_labels = self.rectify_country_labels()
+        df_no_whitespaces = self.replace_whitespaces_with_underscores(df_rectified_country_labels)
+        df_lower_case = self.convert_columns_to_lower_case(df_no_whitespaces)
+        df_converted_nas = self.convert_nas(df_lower_case)
+        df_converted_prep_time = self.convert_prep_time(df_converted_nas)
+        df_one_hot = self.convert_to_one_hot(df_converted_prep_time)
+
+        return df_one_hot
+
+    def remove_columns(self):
+        """
+        Removes columns not in self.columns
 
         :return:
         """
 
-        columns_to_process = [col for col in self.df_recipe_info.columns if col != 'recipe_id']
+        if self.columns == 'all':
+            pass
+        else:
+            self.df_recipe_info = self.df_recipe_info.select(['recipe_id'] + self.columns)
 
-        df_withspaces = self.df_recipe_info
+    def rectify_country_labels(self):
+        """
+        Rectifies inconsistent country labels.
+
+        :return: spark data frame
+        """
+
+        country_columns = [col for col in self.columns if 'country' in col]
+        df_rectified_country_labels = self.df_recipe_info
+
+        if country_columns:
+            for country in country_columns:
+                df_rectified_country_labels = df_rectified_country_labels\
+                    .withColumn(country, f.regexp_replace(country,
+                                                          'United States of America \(USA\)',
+                                                          'United States'))
+                df_rectified_country_labels = df_rectified_country_labels\
+                    .withColumn(country, f.regexp_replace(country,
+                                                          'Israel and the Occupied Territories',
+                                                          'Israel'))
+                df_rectified_country_labels = df_rectified_country_labels\
+                    .withColumn(country, f.regexp_replace(country,
+                                                          'Korea, Republic of \(South Korea\)',
+                                                          'South Korea'))
+
+                df_rectified_country_labels = df_rectified_country_labels\
+                    .withColumn(country, f.regexp_replace(country,
+                                                          'Korea, Democratic Republic of \(North Korea\)',
+                                                          'South Korea'))
+
+                df_rectified_country_labels = df_rectified_country_labels\
+                    .withColumn(country, f.regexp_replace(country,
+                                                          'Great Britain',
+                                                          'United Kingdom'))
+
+        return df_rectified_country_labels
+
+    @staticmethod
+    def replace_whitespaces_with_underscores(df_rectified_country_labels):
+        """
+        Replaces whitespaces with underscores in every column except "recipe_id"
+
+        :param df_rectified_country_labels: spark data frame
+        :return: spark data frame
+        """
+
+        columns_to_process = [col for col in df_rectified_country_labels.columns if col != 'recipe_id']
+
+        df_withspaces = df_rectified_country_labels
 
         for col in columns_to_process:
             df_withspaces = df_withspaces.withColumn(col, f.regexp_replace(col, ' ', '_'))
@@ -93,5 +192,80 @@ class Preprocessor(object):
 
         return df_no_whitespaces
 
+    @staticmethod
+    def convert_columns_to_lower_case(df_no_whitspaces):
+        """
+        Converts all attriute columns to lower case.
 
+        :param df_no_whitspaces: spark data frame
+        :return: spark data frame
+        """
+
+        columns_to_process = [col for col in df_no_whitspaces.columns if col != 'recipe_id']
+
+        df_lower_case = df_no_whitspaces
+
+        for col in columns_to_process:
+            df_lower_case = df_lower_case.withColumn(col, f.lower(f.col(col)))
+
+        return df_lower_case
+
+    @staticmethod
+    def convert_nas(df_lower_case):
+        """
+        Converts "#n/a" to column_name+not_applicable.
+
+        :param df_lower_case: spark data frame
+        :return: spark data frame
+        """
+
+        columns_to_process = [col for col in df_lower_case.columns if col != 'recipe_id']
+
+        df_converted_nas = df_lower_case
+
+        for col in columns_to_process:
+            df_converted_nas = df_converted_nas.withColumn(col, f.regexp_replace(col, '#n/a', col+'_not_applicable'))
+
+        return df_converted_nas
+
+    def convert_prep_time(self, df_converted_nas):
+        """
+        Converts prep times in ranges to upper bound of range.
+
+        :param df_converted_nas: spark data frame
+        :return: spark data frame
+        """
+
+        if 'prep_time' in self.columns:
+            convert_prep_time = f.udf(lambda x: x.split('-')[-1], StringType())
+
+            df_converted_nas = df_converted_nas.withColumn('prep_time_copy', f.col('prep_time'))
+
+            df_converted_prep_time = df_converted_nas.withColumn('prep_time', convert_prep_time(df_converted_nas.prep_time_copy))
+            df_converted_prep_time = df_converted_prep_time.drop('prep_time_copy')
+
+            return df_converted_prep_time
+        else:
+            return df_converted_nas
+
+    def convert_to_one_hot(self, df_lower_case):
+        """
+        Converts recipes description data to one hot using columns attribute.
+
+        :param df_lower_case: spark data frame
+        :return: spark data frame
+        """
+
+        df_one_hot = df_lower_case
+
+        for col in self.columns:
+            unique_labels = [v[0] for v in df_lower_case.select(col).distinct().collect()]
+
+            for label in unique_labels:
+                df_one_hot = df_one_hot\
+                    .withColumn(col+'_'+label, f.when(f.col(col) == label, 1).otherwise(0))
+
+            df_one_hot = df_one_hot.drop(col)
+
+        return df_one_hot
 
