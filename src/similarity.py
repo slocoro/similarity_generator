@@ -19,6 +19,7 @@ class Similarity(object):
 
         self.check_is_spark_data_frame()
         self.check_nulls_in_feature_columns()
+        self.check_is_numerical_data()
 
     def check_is_spark_data_frame(self):
         """
@@ -36,6 +37,10 @@ class Similarity(object):
         :return:
         """
 
+        columns_to_check = [col[1] for col in self.df_features.dtypes if 'id' not in col[0]]
+
+        assert all((col == 'int' or col == 'double') for col in columns_to_check)
+
     def check_nulls_in_feature_columns(self):
         """
         Checks there are no nulls in the feature columns.
@@ -50,3 +55,4 @@ class Similarity(object):
             col_count = self.df_features.filter(f.col(col).isNotNull()).select(col).count()
 
             assert col_count == row_count, f'There are null(s) in "{col}".'
+
