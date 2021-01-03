@@ -48,4 +48,62 @@ class TestSimiarity(PySparkTestCase):
         with self.assertRaises(AssertionError):
             Similarity(df_features=df_numerical)
 
+    def test_generate(self):
+
+        df_features = self.spark.read.csv('tests/fixtures/similarity/features.csv', header=True)
+
+        columns_to_convert = [col for col in df_features.columns if 'id' not in col]
+        df_features_int = df_features
+        for col in columns_to_convert:
+            df_features_int = df_features_int.withColumn(col, f.col(col).cast(IntegerType()))
+
+        similarity_cos = Similarity(df_features=df_features_int, similarity_type='cosine')
+
+        pd_df_similarity_cos, mat_similarity_cos, _ = similarity_cos.generate()
+
+        self.assertEqual(pd_df_similarity_cos.shape[0], df_features.count())
+        self.assertEqual(pd_df_similarity_cos.shape[1], df_features.count())
+
+        self.assertEqual(mat_similarity_cos.shape[0], df_features.count())
+        self.assertEqual(mat_similarity_cos.shape[1], df_features.count())
+
+        similarity_euc = Similarity(df_features=df_features_int, similarity_type='euclidean')
+
+        pd_df_similarity_euc, mat_similarity_euc, _ = similarity_euc.generate()
+
+        self.assertEqual(pd_df_similarity_euc.shape[0], df_features.count())
+        self.assertEqual(pd_df_similarity_euc.shape[1], df_features.count())
+
+        self.assertEqual(mat_similarity_euc.shape[0], df_features.count())
+        self.assertEqual(mat_similarity_euc.shape[1], df_features.count())
+
+        similarity_fail = Similarity(df_features=df_features_int, similarity_type='test')
+        with self.assertRaises(ValueError):
+            similarity_fail.generate()
+
+    def test_convert_to_long_format(self):
+
+        pd_df_similarities_wide = pd.read_csv('tests/fixtures/similarity/similarities_wide.csv', index_col=0)
+
+        pd_df_similarities_long = Similarity.convert_to_long_format(pd_df_similarities_wide)
+
+        self.assertEqual(pd_df_similarities_long.shape[0],
+                         pd_df_similarities_wide.shape[0]*pd_df_similarities_wide.shape[1])
+
+        check_1_3 = pd_df_similarities_long.loc[(pd_df_similarities_long['recipe_id_1'] == 1)
+                                                & (pd_df_similarities_long['recipe_id_2'] == '3')]['similarity'].values[0]
+        self.assertEqual(check_1_3, 9)
+
+        check_3_1 = pd_df_similarities_long.loc[(pd_df_similarities_long['recipe_id_1'] == 3)
+                                                & (pd_df_similarities_long['recipe_id_2'] == '1')]['similarity'].values[0]
+        self.assertEqual(check_3_1, 6)
+
+        check_2_3 = pd_df_similarities_long.loc[(pd_df_similarities_long['recipe_id_1'] == 2)
+                                                & (pd_df_similarities_long['recipe_id_2'] == '3')]['similarity'].values[0]
+        self.assertEqual(check_2_3, 1)
+
+        check_1_2 = pd_df_similarities_long.loc[(pd_df_similarities_long['recipe_id_1'] == 1)
+                                                & (pd_df_similarities_long['recipe_id_2'] == '2')]['similarity'].values[0]
+        self.assertEqual(check_1_2, 6)
+
 
