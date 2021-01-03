@@ -14,7 +14,7 @@ df_recipe_info = spark.read.csv('data/recipes_info.csv', header=True)
 
 COLUMNS = 'all'
 INDEX_COLUMN = 'recipe_id'
-SIMILARITY_TYPE = 'cosine'
+SIMILARITY_TYPE = 'euclidean'
 
 etl_created = create_timestamp()
 
@@ -36,10 +36,11 @@ pd_df_similarities_long = similarities[1]
 
 similarities_dir = f'output/{etl_created}/similarities'
 os.makedirs(similarities_dir)
-pd_df_similarities_wide.to_csv(f'{similarities_dir}/similarities_wide_index.csv', index=True)
+pd_df_similarities_wide.to_csv(f'{similarities_dir}/similarities_wide.csv', index=True)
 pd_df_similarities_long.to_csv(f'{similarities_dir}/similarities_long.csv', index=False)
 
 parameters_dir = f'output/{etl_created}/parameters'
+os.makedirs(parameters_dir)
 pd_df_parameters = create_parameters_table(similarity_type=SIMILARITY_TYPE,
                                            index_column=INDEX_COLUMN,
                                            columns=COLUMNS)
