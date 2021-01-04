@@ -88,8 +88,7 @@ class Similarity(object):
 
         return pd_df_similarity, pd_with_rank_column
 
-    @staticmethod
-    def convert_to_long_format(pd_df_similarity):
+    def convert_to_long_format(self, pd_df_similarity):
         """
         Converts wide similarities to long.
 
@@ -99,15 +98,15 @@ class Similarity(object):
 
         pd_df_similarity_copy = pd_df_similarity.copy(deep=True)
 
-        pd_df_similarity_copy.insert(loc=0, column='recipe_id', value=pd_df_similarity_copy.index)
+        pd_df_similarity_copy.insert(loc=0, column=self.index_column, value=pd_df_similarity_copy.index)
 
         pd_df_similarity_long = pd.melt(pd_df_similarity_copy,
-                                        id_vars=['recipe_id'],
+                                        id_vars=[self.index_column],
                                         value_vars=pd_df_similarity_copy.columns.values.tolist()[1:],
-                                        var_name='recipe_id_2',
+                                        var_name=self.index_column+'_2',
                                         value_name='similarity')
 
-        pd_df_similarity_long.rename(columns={'recipe_id': 'recipe_id_1'}, inplace=True)
+        pd_df_similarity_long.rename(columns={self.index_column: self.index_column+'_1'}, inplace=True)
 
         return pd_df_similarity_long
 
