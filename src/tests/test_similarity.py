@@ -8,7 +8,7 @@ from similarity import Similarity
 import pandas as pd
 
 
-class TestSimiarity(PySparkTestCase):
+class TestSimilarity(PySparkTestCase):
 
     def test_add_rank_column(self):
 
