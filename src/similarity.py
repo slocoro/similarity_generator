@@ -73,6 +73,7 @@ class Similarity(object):
 
         pd_df_similarity = self.df_features.toPandas()
         similarity_indexes = pd_df_similarity[self.index_column].tolist()
+        similarity_indexes_with_prefix = [self.index_column+'_'+val for val in similarity_indexes]
         pd_df_similarity_no_index = pd_df_similarity.drop(columns=[self.index_column])
 
         if self.similarity_type == 'cosine':
@@ -82,7 +83,9 @@ class Similarity(object):
         else:
             raise ValueError('Unknown "similarity_type".')
 
-        pd_df_similarity = pd.DataFrame(mat_similarity, index=similarity_indexes, columns=similarity_indexes)
+        pd_df_similarity = pd.DataFrame(mat_similarity,
+                                        index=similarity_indexes_with_prefix,
+                                        columns=similarity_indexes_with_prefix)
 
         pd_df_similarity_long = self.convert_to_long_format(pd_df_similarity)
         pd_with_rank_column = self.add_rank_column(pd_df_similarity_long)
