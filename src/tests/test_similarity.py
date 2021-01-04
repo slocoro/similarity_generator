@@ -10,7 +10,7 @@ import pandas as pd
 
 class TestSimilarity(PySparkTestCase):
 
-    def test_add_rank_column(self):
+    def test__add_rank_column(self):
 
         pd_df_similarities_long = pd.read_csv('tests/fixtures/similarity/similarities_long.csv')
 
@@ -20,7 +20,7 @@ class TestSimilarity(PySparkTestCase):
             df_simple_table = df_simple_table.withColumn(col, f.col(col).cast(IntegerType()))
         similarity_cosine = Similarity(df_features=df_simple_table, index_column='id', similarity_type='cosine')
 
-        pd_df_with_rank_cosine = similarity_cosine.add_rank_column(pd_df_similarities_long)
+        pd_df_with_rank_cosine = similarity_cosine._add_rank_column(pd_df_similarities_long)
         check_id_1_1_cosine = pd_df_with_rank_cosine.loc[(pd_df_with_rank_cosine['id_1'] == 1)
                                                          & (pd_df_with_rank_cosine['id_2'] == 1)]['rank'].values[0]
         self.assertEqual(check_id_1_1_cosine, 1)
@@ -35,7 +35,7 @@ class TestSimilarity(PySparkTestCase):
 
         similarity_euclidean = Similarity(df_features=df_simple_table, index_column='id', similarity_type='euclidean')
 
-        pd_df_with_rank_euclidean = similarity_euclidean.add_rank_column(pd_df_similarities_long)
+        pd_df_with_rank_euclidean = similarity_euclidean._add_rank_column(pd_df_similarities_long)
 
         check_id_3_3_euclidean = pd_df_with_rank_euclidean.loc[(pd_df_with_rank_euclidean['id_1'] == 3)
                                                                & (pd_df_with_rank_euclidean['id_2'] == 3)]['rank'].values[0]
@@ -46,7 +46,7 @@ class TestSimilarity(PySparkTestCase):
         cnt = 0
         for i in range(5):
             similarity_cosine_dupes = Similarity(df_features=df_simple_table, index_column='id', similarity_type='cosine')
-            pd_df_with_rank_cosine_dupes = similarity_cosine_dupes.add_rank_column(pd_df_similarities_long_dupes)
+            pd_df_with_rank_cosine_dupes = similarity_cosine_dupes._add_rank_column(pd_df_similarities_long_dupes)
 
             check_id_1_5_dupes = pd_df_with_rank_cosine_dupes.loc[(pd_df_with_rank_cosine_dupes['id_1'] == 1)
                                                                   & (pd_df_with_rank_cosine_dupes['id_2'] == 5)]['rank'].values[0]
@@ -55,7 +55,7 @@ class TestSimilarity(PySparkTestCase):
 
         self.assertTrue(cnt < 5)
 
-    def test_check_is_spark_data_frame(self):
+    def test__check_is_spark_data_frame(self):
 
         df_simple_table = self.spark.read.csv('tests/fixtures/similarity/simple_table.csv', header=True)
         pd_df_simple_table = pd.read_csv('tests/fixtures/similarity/simple_table.csv')
@@ -69,7 +69,7 @@ class TestSimilarity(PySparkTestCase):
         with self.assertRaises(AssertionError):
             Similarity(df_features=pd_df_simple_table)
 
-    def test_check_nulls_in_feature_columns(self):
+    def test__check_nulls_in_feature_columns(self):
 
         df_nulls_features = self.spark.read.csv('tests/fixtures/similarity/nulls_features.csv', header=True)
         df_no_nulls_features = self.spark.read.csv('tests/fixtures/similarity/no_nulls_features.csv', header=True)
@@ -87,7 +87,7 @@ class TestSimilarity(PySparkTestCase):
         with self.assertRaises(AssertionError):
             Similarity(df_features=df_nulls_features)
 
-    def test_check_is_numerical_data(self):
+    def test__check_is_numerical_data(self):
 
         df_numerical = self.spark.read.csv('tests/fixtures/similarity/numerical_data.csv', header=True)
 
@@ -132,7 +132,7 @@ class TestSimilarity(PySparkTestCase):
         with self.assertRaises(ValueError):
             similarity_fail.generate()
 
-    def test_convert_to_long_format(self):
+    def test__convert_to_long_format(self):
 
         pd_df_similarities_wide = pd.read_csv('tests/fixtures/similarity/similarities_wide.csv', index_col=0)
 
@@ -142,7 +142,7 @@ class TestSimilarity(PySparkTestCase):
             df_simple_table = df_simple_table.withColumn(col, f.col(col).cast(IntegerType()))
         similarity = Similarity(df_features=df_simple_table)
 
-        pd_df_similarities_long = similarity.convert_to_long_format(pd_df_similarities_wide)
+        pd_df_similarities_long = similarity._convert_to_long_format(pd_df_similarities_wide)
 
         self.assertEqual(pd_df_similarities_long.shape[0],
                          pd_df_similarities_wide.shape[0]*pd_df_similarities_wide.shape[1])

@@ -29,14 +29,14 @@ class Preprocess(object):
         self.columns = columns
         self.index_column = index_column
 
-        self.check_is_spark_data_frame()
-        self.check_is_list()
-        self.convert_column_argument()
-        self.check_nulls_in_index_column()
-        self.remove_duplicate_indexes()
-        self.check_nulls_in_attribute_columns()
+        self._check_is_spark_data_frame()
+        self._check_is_list()
+        self._convert_column_argument()
+        self._check_nulls_in_index_column()
+        self._remove_duplicate_indexes()
+        self._check_nulls_in_attribute_columns()
 
-    def convert_column_argument(self):
+    def _convert_column_argument(self):
         """
         Converts column argument to list of columns names in df_labels (without index_column).
 
@@ -46,7 +46,7 @@ class Preprocess(object):
         if self.columns == 'all':
             self.columns = [col for col in self.df_labels.columns if col != self.index_column]
 
-    def remove_duplicate_indexes(self):
+    def _remove_duplicate_indexes(self):
         """
         Removes duplicate recipes by randomly selecting one if duplicated.
 
@@ -62,7 +62,7 @@ class Preprocess(object):
             .filter(f.col('rn') == 1)\
             .drop('rn')
 
-    def check_is_list(self):
+    def _check_is_list(self):
         """
         Checks "columns" is a list.
 
@@ -72,7 +72,7 @@ class Preprocess(object):
         if self.columns is not 'all':
             assert isinstance(self.columns, list), '"columns" has to be a list.'
 
-    def check_is_spark_data_frame(self):
+    def _check_is_spark_data_frame(self):
         """
         Checks if df_labels is a spark data frame.
 
@@ -81,7 +81,7 @@ class Preprocess(object):
 
         assert isinstance(self.df_labels, DataFrame), '"df_labels" is not a spark data frame.'
 
-    def check_nulls_in_index_column(self):
+    def _check_nulls_in_index_column(self):
         """
         Checks if column "recipe_id" contains nulls.
 
@@ -92,7 +92,7 @@ class Preprocess(object):
         assert null_count == 0, \
             f'There are {null_count} null(s) in the "index_column" column in "df_labels" when no nulls are allowed.'
 
-    def check_nulls_in_attribute_columns(self):
+    def _check_nulls_in_attribute_columns(self):
         """
         Checks if nulls in attribute columns.
 
@@ -114,18 +114,18 @@ class Preprocess(object):
         :return: spark data frame
         """
 
-        self.remove_columns()
+        self._remove_columns()
 
-        df_rectified_country_labels = self.rectify_country_labels()
-        df_no_whitespaces = self.replace_whitespaces_with_underscores(df_rectified_country_labels)
-        df_lower_case = self.convert_columns_to_lower_case(df_no_whitespaces)
-        df_converted_nas = self.convert_nas(df_lower_case)
-        df_converted_prep_time = self.convert_prep_time(df_converted_nas)
-        df_one_hot = self.convert_to_one_hot(df_converted_prep_time)
+        df_rectified_country_labels = self._rectify_country_labels()
+        df_no_whitespaces = self._replace_whitespaces_with_underscores(df_rectified_country_labels)
+        df_lower_case = self._convert_columns_to_lower_case(df_no_whitespaces)
+        df_converted_nas = self._convert_nas(df_lower_case)
+        df_converted_prep_time = self._convert_prep_time(df_converted_nas)
+        df_one_hot = self._convert_to_one_hot(df_converted_prep_time)
 
         return df_one_hot
 
-    def remove_columns(self):
+    def _remove_columns(self):
         """
         Removes columns not in self.columns
 
@@ -137,7 +137,7 @@ class Preprocess(object):
         else:
             self.df_labels = self.df_labels.select([self.index_column] + self.columns)
 
-    def rectify_country_labels(self):
+    def _rectify_country_labels(self):
         """
         Rectifies inconsistent country labels.
 
@@ -174,7 +174,7 @@ class Preprocess(object):
 
         return df_rectified_country_labels
 
-    def replace_whitespaces_with_underscores(self, df_rectified_country_labels):
+    def _replace_whitespaces_with_underscores(self, df_rectified_country_labels):
         """
         Replaces whitespaces with underscores in every column except "index_column"
 
@@ -193,7 +193,7 @@ class Preprocess(object):
 
         return df_no_whitespaces
 
-    def convert_columns_to_lower_case(self, df_no_whitspaces):
+    def _convert_columns_to_lower_case(self, df_no_whitspaces):
         """
         Converts all attriute columns to lower case.
 
@@ -210,7 +210,7 @@ class Preprocess(object):
 
         return df_lower_case
 
-    def convert_nas(self, df_lower_case):
+    def _convert_nas(self, df_lower_case):
         """
         Converts "#n/a" to column_name+not_applicable.
 
@@ -227,7 +227,7 @@ class Preprocess(object):
 
         return df_converted_nas
 
-    def convert_prep_time(self, df_converted_nas):
+    def _convert_prep_time(self, df_converted_nas):
         """
         Converts prep times in ranges to upper bound of range.
 
@@ -247,7 +247,7 @@ class Preprocess(object):
         else:
             return df_converted_nas
 
-    def convert_to_one_hot(self, df_lower_case):
+    def _convert_to_one_hot(self, df_lower_case):
         """
         Converts recipes description data to one hot using columns attribute.
 
