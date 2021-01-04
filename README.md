@@ -9,4 +9,6 @@ To generate similarities follow the steps below:
 {filename} -> name of file to be processed
 {index_column} -> name of id column
 
+By default, cosine similarity and all label columns are used to generate similarities.
+
 Similarities are saved in output/ folder in root.
