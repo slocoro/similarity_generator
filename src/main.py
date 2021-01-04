@@ -16,8 +16,8 @@ file_name = sys.argv[1]
 df_labels = spark.read.csv(f'data/{file_name}', header=True)
 
 COLUMNS = 'all'
-INDEX_COLUMN = 'recipe_id'
-SIMILARITY_TYPE = 'euclidean'
+INDEX_COLUMN = sys.argv[2]
+SIMILARITY_TYPE = 'cosine'
 
 etl_created = create_timestamp()
 
