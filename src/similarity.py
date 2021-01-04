@@ -5,6 +5,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.metrics.pairwise import euclidean_distances
 
 import pandas as pd
+import numpy as np
 
 
 class Similarity(object):
@@ -123,10 +124,14 @@ class Similarity(object):
         elif self.similarity_type == 'euclidean':
             ascending = True
 
+        pd_df_similarity_long['rand'] = np.random.randint(100, size=pd_df_similarity_long.shape[0])
+
         pd_df_similarity_long['rank'] = pd_df_similarity_long\
-                                            .sort_values(['similarity'], ascending=[ascending])\
+                                            .sort_values(['similarity', 'rand'], ascending=[ascending, True])\
                                             .groupby([self.index_column+'_1'])\
                                             .cumcount() + 1
+
+        pd_df_similarity_long = pd_df_similarity_long.drop(columns=['rand'])
 
         return pd_df_similarity_long
 

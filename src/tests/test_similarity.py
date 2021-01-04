@@ -21,7 +21,6 @@ class TestSimiarity(PySparkTestCase):
         similarity_cosine = Similarity(df_features=df_simple_table, index_column='id', similarity_type='cosine')
 
         pd_df_with_rank_cosine = similarity_cosine.add_rank_column(pd_df_similarities_long)
-
         check_id_1_1_cosine = pd_df_with_rank_cosine.loc[(pd_df_with_rank_cosine['id_1'] == 1)
                                                          & (pd_df_with_rank_cosine['id_2'] == 1)]['rank'].values[0]
         self.assertEqual(check_id_1_1_cosine, 1)
@@ -41,6 +40,20 @@ class TestSimiarity(PySparkTestCase):
         check_id_3_3_euclidean = pd_df_with_rank_euclidean.loc[(pd_df_with_rank_euclidean['id_1'] == 3)
                                                                & (pd_df_with_rank_euclidean['id_2'] == 3)]['rank'].values[0]
         self.assertEqual(check_id_3_3_euclidean, 3)
+
+        pd_df_similarities_long_dupes = pd.read_csv('tests/fixtures/similarity/similarities_long_dupes.csv')
+
+        cnt = 0
+        for i in range(5):
+            similarity_cosine_dupes = Similarity(df_features=df_simple_table, index_column='id', similarity_type='cosine')
+            pd_df_with_rank_cosine_dupes = similarity_cosine_dupes.add_rank_column(pd_df_similarities_long_dupes)
+
+            check_id_1_5_dupes = pd_df_with_rank_cosine_dupes.loc[(pd_df_with_rank_cosine_dupes['id_1'] == 1)
+                                                                  & (pd_df_with_rank_cosine_dupes['id_2'] == 5)]['rank'].values[0]
+
+            cnt += 1 if check_id_1_5_dupes == 1 else 0
+
+        self.assertTrue(cnt < 5)
 
     def test_check_is_spark_data_frame(self):
 
