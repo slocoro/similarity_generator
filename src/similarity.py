@@ -25,11 +25,11 @@ class Similarity(object):
         self.index_column = index_column
         self.similarity_type = similarity_type
 
-        self.check_is_spark_data_frame()
-        self.check_nulls_in_feature_columns()
-        self.check_is_numerical_data()
+        self._check_is_spark_data_frame()
+        self._check_nulls_in_feature_columns()
+        self._check_is_numerical_data()
 
-    def check_is_spark_data_frame(self):
+    def _check_is_spark_data_frame(self):
         """
         Checks if df_features is a spark data frame.
 
@@ -38,7 +38,7 @@ class Similarity(object):
 
         assert isinstance(self.df_features, DataFrame), '"df_features" is not a spark data frame.'
 
-    def check_is_numerical_data(self):
+    def _check_is_numerical_data(self):
         """
         Checks of feature columns are numerical.
 
@@ -49,7 +49,7 @@ class Similarity(object):
 
         assert all((col == 'int' or col == 'double') for col in columns_to_check)
 
-    def check_nulls_in_feature_columns(self):
+    def _check_nulls_in_feature_columns(self):
         """
         Checks there are no nulls in the feature columns.
 
@@ -90,12 +90,12 @@ class Similarity(object):
                                                     index=similarity_indexes_with_prefix,
                                                     columns=similarity_indexes_with_prefix)
 
-        pd_df_similarity_long = self.convert_to_long_format(pd_df_similarity)
-        pd_with_rank_column = self.add_rank_column(pd_df_similarity_long)
+        pd_df_similarity_long = self._convert_to_long_format(pd_df_similarity)
+        pd_with_rank_column = self._add_rank_column(pd_df_similarity_long)
 
         return pd_df_similarity_with_prefix, pd_with_rank_column
 
-    def convert_to_long_format(self, pd_df_similarity):
+    def _convert_to_long_format(self, pd_df_similarity):
         """
         Converts wide similarities to long.
 
@@ -117,7 +117,7 @@ class Similarity(object):
 
         return pd_df_similarity_long
 
-    def add_rank_column(self, pd_df_similarity_long):
+    def _add_rank_column(self, pd_df_similarity_long):
         """
         Adds rank column partitioned by index_column to long format similarities.
 
