@@ -8,11 +8,11 @@ def create_spark_session(name):
     :param name: string
     :return: None
     """
-    spark = SparkSession \
-        .builder \
-        .appName(name) \
-        .config('spark.executor.memory', '30g') \
-        .enableHiveSupport() \
+    spark = SparkSession\
+        .builder\
+        .appName(name)\
+        .config('spark.executor.memory', '30g')\
+        .enableHiveSupport()\
         .getOrCreate()
     return spark
 
