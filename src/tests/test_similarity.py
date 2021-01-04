@@ -10,6 +10,38 @@ import pandas as pd
 
 class TestSimiarity(PySparkTestCase):
 
+    def test_add_rank_column(self):
+
+        pd_df_similarities_long = pd.read_csv('tests/fixtures/similarity/similarities_long.csv')
+
+        df_simple_table = self.spark.read.csv('tests/fixtures/similarity/simple_table_id.csv', header=True)
+        columns_to_convert = [col for col in df_simple_table.columns if 'id' not in col]
+        for col in columns_to_convert:
+            df_simple_table = df_simple_table.withColumn(col, f.col(col).cast(IntegerType()))
+        similarity_cosine = Similarity(df_features=df_simple_table, index_column='id', similarity_type='cosine')
+
+        pd_df_with_rank_cosine = similarity_cosine.add_rank_column(pd_df_similarities_long)
+
+        check_id_1_1_cosine = pd_df_with_rank_cosine.loc[(pd_df_with_rank_cosine['id_1'] == 1)
+                                                         & (pd_df_with_rank_cosine['id_2'] == 1)]['rank'].values[0]
+        self.assertEqual(check_id_1_1_cosine, 1)
+
+        check_id_1_3_cosine = pd_df_with_rank_cosine.loc[(pd_df_with_rank_cosine['id_1'] == 1)
+                                                         & (pd_df_with_rank_cosine['id_2'] == 3)]['rank'].values[0]
+        self.assertEqual(check_id_1_3_cosine, 3)
+
+        check_id_3_3_cosine = pd_df_with_rank_cosine.loc[(pd_df_with_rank_cosine['id_1'] == 3)
+                                                         & (pd_df_with_rank_cosine['id_2'] == 3)]['rank'].values[0]
+        self.assertEqual(check_id_3_3_cosine, 1)
+
+        similarity_euclidean = Similarity(df_features=df_simple_table, index_column='id', similarity_type='euclidean')
+
+        pd_df_with_rank_euclidean = similarity_euclidean.add_rank_column(pd_df_similarities_long)
+
+        check_id_3_3_euclidean = pd_df_with_rank_euclidean.loc[(pd_df_with_rank_euclidean['id_1'] == 3)
+                                                               & (pd_df_with_rank_euclidean['id_2'] == 3)]['rank'].values[0]
+        self.assertEqual(check_id_3_3_euclidean, 3)
+
     def test_check_is_spark_data_frame(self):
 
         df_simple_table = self.spark.read.csv('tests/fixtures/similarity/simple_table.csv', header=True)
@@ -111,5 +143,4 @@ class TestSimiarity(PySparkTestCase):
         check_1_2 = pd_df_similarities_long.loc[(pd_df_similarities_long['recipe_id_1'] == 1)
                                                 & (pd_df_similarities_long['recipe_id_2'] == '2')]['similarity'].values[0]
         self.assertEqual(check_1_2, 6)
-
 

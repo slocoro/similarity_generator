@@ -84,8 +84,9 @@ class Similarity(object):
         pd_df_similarity = pd.DataFrame(mat_similarity, index=similarity_indexes, columns=similarity_indexes)
 
         pd_df_similarity_long = self.convert_to_long_format(pd_df_similarity)
+        pd_with_rank_column = self.add_rank_column(pd_df_similarity_long)
 
-        return pd_df_similarity, pd_df_similarity_long
+        return pd_df_similarity, pd_with_rank_column
 
     @staticmethod
     def convert_to_long_format(pd_df_similarity):
@@ -109,3 +110,24 @@ class Similarity(object):
         pd_df_similarity_long.rename(columns={'recipe_id': 'recipe_id_1'}, inplace=True)
 
         return pd_df_similarity_long
+
+    def add_rank_column(self, pd_df_similarity_long):
+        """
+        Adds rank column partitioned by index_column to long format similarities.
+
+        :param pd_df_similarity_long: pandas data frame
+        :return: pandas data frame
+        """
+
+        if self.similarity_type == 'cosine':
+            ascending = False
+        elif self.similarity_type == 'euclidean':
+            ascending = True
+
+        pd_df_similarity_long['rank'] = pd_df_similarity_long\
+                                            .sort_values(['similarity'], ascending=[ascending])\
+                                            .groupby([self.index_column+'_1'])\
+                                            .cumcount() + 1
+
+        return pd_df_similarity_long
+
