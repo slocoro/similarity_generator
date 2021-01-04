@@ -123,7 +123,13 @@ class TestSimiarity(PySparkTestCase):
 
         pd_df_similarities_wide = pd.read_csv('tests/fixtures/similarity/similarities_wide.csv', index_col=0)
 
-        pd_df_similarities_long = Similarity.convert_to_long_format(pd_df_similarities_wide)
+        df_simple_table = self.spark.read.csv('tests/fixtures/similarity/simple_table.csv', header=True)
+        columns_to_convert = [col for col in df_simple_table.columns if 'id' not in col]
+        for col in columns_to_convert:
+            df_simple_table = df_simple_table.withColumn(col, f.col(col).cast(IntegerType()))
+        similarity = Similarity(df_features=df_simple_table)
+
+        pd_df_similarities_long = similarity.convert_to_long_format(pd_df_similarities_wide)
 
         self.assertEqual(pd_df_similarities_long.shape[0],
                          pd_df_similarities_wide.shape[0]*pd_df_similarities_wide.shape[1])
