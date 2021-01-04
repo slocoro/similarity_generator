@@ -31,12 +31,12 @@ class Similarity(object):
 
     def check_is_spark_data_frame(self):
         """
-        Checks if df_recipe_info is a spark data frame.
+        Checks if df_features is a spark data frame.
 
         :return:
         """
 
-        assert isinstance(self.df_features, DataFrame), '"df_recipe_info" is not a spark data frame.'
+        assert isinstance(self.df_features, DataFrame), '"df_features" is not a spark data frame.'
 
     def check_is_numerical_data(self):
         """
@@ -84,13 +84,16 @@ class Similarity(object):
             raise ValueError('Unknown "similarity_type".')
 
         pd_df_similarity = pd.DataFrame(mat_similarity,
-                                        index=similarity_indexes_with_prefix,
-                                        columns=similarity_indexes_with_prefix)
+                                        index=similarity_indexes,
+                                        columns=similarity_indexes)
+        pd_df_similarity_with_prefix = pd.DataFrame(mat_similarity,
+                                                    index=similarity_indexes_with_prefix,
+                                                    columns=similarity_indexes_with_prefix)
 
         pd_df_similarity_long = self.convert_to_long_format(pd_df_similarity)
         pd_with_rank_column = self.add_rank_column(pd_df_similarity_long)
 
-        return pd_df_similarity, pd_with_rank_column
+        return pd_df_similarity_with_prefix, pd_with_rank_column
 
     def convert_to_long_format(self, pd_df_similarity):
         """
