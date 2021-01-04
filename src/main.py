@@ -6,20 +6,24 @@ from utils import create_timestamp
 from utils import create_parameters_table
 
 import os
+import sys
 
 
 spark = create_spark_session('generate_similarities')
 
-df_recipe_info = spark.read.csv('data/recipes_info.csv', header=True)
+file_name = sys.argv[1]
+
+df_labels = spark.read.csv(f'data/{file_name}', header=True)
 
 COLUMNS = 'all'
-INDEX_COLUMN = 'recipe_id'
-SIMILARITY_TYPE = 'euclidean'
+INDEX_COLUMN = sys.argv[2]
+SIMILARITY_TYPE = 'cosine'
 
 etl_created = create_timestamp()
 
-preprocessor = Preprocess(df_recipe_info=df_recipe_info,
-                          columns='all')
+preprocessor = Preprocess(df_labels=df_labels,
+                          columns=COLUMNS,
+                          index_column=INDEX_COLUMN)
 df_recipe_features = preprocessor.preprocess()
 pd_df_recipe_features = df_recipe_features.toPandas()
 features_dir = f'output/{etl_created}/features'
